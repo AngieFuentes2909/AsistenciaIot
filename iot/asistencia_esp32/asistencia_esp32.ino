@@ -69,11 +69,17 @@ String bufferTeclado = "";
 
 String modoActual = "AUTO"; // "AUTO" alterna automáticamente entre Entrada y Salida
 
+// Control de carrusel en pantalla LCD en reposo
+unsigned long ultimoCambioPantalla = 0;
+int estadoPantallaReposo = 0;
+
 // Declaraciones
 void beepExito();
 void beepError();
 void beepTecla();
 void mostrarMensajeLCD(String linea1, String linea2);
+void reiniciarPantallaReposo();
+void actualizarPantallaReposo();
 void enviarAsistenciaAPI(String metodo, String identificador, String tipo);
 
 void setup() {
@@ -119,11 +125,13 @@ void setup() {
   }
   delay(1500);
 
-  mostrarMensajeLCD("Pase su tarjeta", "Bienvenido!");
-  Serial.println(">> Lector RFID listo para escanear <<");
+  reiniciarPantallaReposo();
+  Serial.println(">> Sistema listo para escanear <<");
 }
 
 void loop() {
+  actualizarPantallaReposo();
+
 #if USAR_TECLADO
   // 1. REVISAR SI SE DIGITÓ EN EL TECLADO
   char key = keypad.getKey();
@@ -142,8 +150,8 @@ void loop() {
     else if (key == '*') {
       bufferTeclado = "";
       mostrarMensajeLCD("Modo: " + modoActual, "Borrado");
-      delay(800);
-      mostrarMensajeLCD("Modo: " + modoActual, "Tarjeta o Codigo");
+      delay(600);
+      reiniciarPantallaReposo();
     }
     else if (key == '#') {
       if (bufferTeclado.length() > 0) {
@@ -250,7 +258,7 @@ void enviarAsistenciaAPI(String metodo, String identificador, String tipo) {
 
   http.end();
   delay(2000);
-  mostrarMensajeLCD("Pase su tarjeta", "Bienvenido!");
+  reiniciarPantallaReposo();
   Serial.println(">> Listo para la siguiente lectura <<");
 }
 
@@ -284,4 +292,29 @@ void mostrarMensajeLCD(String linea1, String linea2) {
   lcd.print(linea1);
   lcd.setCursor(0, 1);
   lcd.print(linea2);
+}
+
+void reiniciarPantallaReposo() {
+  ultimoCambioPantalla = millis();
+  estadoPantallaReposo = 0;
+  mostrarMensajeLCD("Pase su tarjeta", "Bienvenido!");
+}
+
+void actualizarPantallaReposo() {
+#if USAR_TECLADO
+  // Si la persona está escribiendo su código, no rotar la pantalla
+  if (bufferTeclado.length() > 0) return;
+
+  // Cambiar de pantalla cada 3.5 segundos (3500 ms) sin retrasar el procesador
+  if (millis() - ultimoCambioPantalla >= 3500) {
+    ultimoCambioPantalla = millis();
+    estadoPantallaReposo = !estadoPantallaReposo;
+
+    if (estadoPantallaReposo == 0) {
+      mostrarMensajeLCD("Pase su tarjeta", "Bienvenido!");
+    } else {
+      mostrarMensajeLCD("O digite su Doc", "Luego tecla [#]");
+    }
+  }
+#endif
 }
