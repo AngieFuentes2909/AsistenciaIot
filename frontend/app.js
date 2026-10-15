@@ -59,6 +59,7 @@ function cambiarTab(tabId) {
 
   if (tabId === 'tab-usuarios') cargarUsuarios();
   if (tabId === 'tab-asistencias') cargarAsistencias();
+  if (tabId === 'tab-reportes') ejecutarConsultaReporte();
 }
 
 // --- CARGAR KPIS ---
