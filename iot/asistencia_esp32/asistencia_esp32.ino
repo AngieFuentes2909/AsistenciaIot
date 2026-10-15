@@ -16,6 +16,7 @@
 #define USAR_TECLADO false 
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <SPI.h>
 #include <MFRC522.h>
@@ -33,8 +34,8 @@
 const char* WIFI_SSID     = "MOVISTAR_FIBRA_PLUS_CEC0";
 const char* WIFI_PASSWORD = "zhpoeoS5UrSKsQwph5rb";
 
-// ⚠️ Dirección IP de tu computador en tu red WiFi:
-const char* API_URL = "http://192.168.1.6:8000/api/asistencias/registrar";
+// 🌐 URL del Servidor en la Nube (Render):
+const char* API_URL = "https://asistenciaiot.onrender.com/api/asistencias/registrar";
 
 // ============================================================
 //  PINES
@@ -192,9 +193,12 @@ void enviarAsistenciaAPI(String metodo, String identificador, String tipo) {
     return;
   }
 
+  WiFiClientSecure client;
+  client.setInsecure(); // Conexión HTTPS sin requerir certificado raíz estático
+
   HTTPClient http;
-  http.begin(API_URL);
-  http.setTimeout(3000); // Evitar bloqueos de red
+  http.begin(client, API_URL);
+  http.setTimeout(10000); // 10s para asegurar conexión estable en la nube
   http.addHeader("Content-Type", "application/json");
 
   // Armar JSON en formato de texto
