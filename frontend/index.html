@@ -82,6 +82,9 @@
       <button class="tab-btn" data-tab="tab-nuevo-usuario">
         <span>➕</span> Registrar Docente
       </button>
+      <button class="tab-btn" data-tab="tab-reportes">
+        <span>📑</span> Reportes Gerenciales
+      </button>
       <button class="tab-btn" data-tab="tab-simulador">
         <span>🧪</span> Simulador Web
       </button>
@@ -205,9 +208,117 @@
           </div>
         </form>
       </div>
+    <!-- TAB 4: REPORTES GERENCIALES / DIRECTIVOS -->
+    <section id="tab-reportes" class="tab-panel">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Módulo de Reportería y Control Gerencial</h2>
+            <p>Generación y descarga de informes de asistencia docente para Rectoría y Dirección</p>
+          </div>
+          <div class="report-actions-header">
+            <button id="btn-export-csv" class="btn-primary btn-success">📥 Descargar Excel (CSV)</button>
+            <button id="btn-print-pdf" class="btn-primary btn-secondary">🖨️ Imprimir / Guardar PDF</button>
+          </div>
+        </div>
+
+        <!-- FILTROS DE BÚSQUEDA -->
+        <div class="report-filters-card">
+          <div class="filter-quick-row">
+            <span class="filter-label">Periodo Rápido:</span>
+            <div class="quick-btn-group">
+              <button type="button" class="btn-quick active" data-period="hoy">Hoy</button>
+              <button type="button" class="btn-quick" data-period="ayer">Ayer</button>
+              <button type="button" class="btn-quick" data-period="semana">Esta Semana</button>
+              <button type="button" class="btn-quick" data-period="mes">Este Mes</button>
+              <button type="button" class="btn-quick" data-period="todo">Todo el Historial</button>
+            </div>
+          </div>
+
+          <div class="form-grid report-grid-custom">
+            <div class="form-group">
+              <label for="rep-fecha-inicio">Fecha Inicio</label>
+              <input type="date" id="rep-fecha-inicio" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="rep-fecha-fin">Fecha Fin</label>
+              <input type="date" id="rep-fecha-fin" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="rep-tipo">Tipo de Marcación</label>
+              <select id="rep-tipo" class="form-control">
+                <option value="">Todas (Entradas y Salidas)</option>
+                <option value="ENTRADA">Solo Entradas</option>
+                <option value="SALIDA">Solo Salidas</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-area">Área / Asignatura</label>
+              <select id="rep-area" class="form-control">
+                <option value="">Todas las Áreas</option>
+                <option value="Español">Español y Literatura</option>
+                <option value="Educación Física">Educación Física</option>
+                <option value="Matemáticas">Matemáticas</option>
+                <option value="Ciencias Naturales">Ciencias Naturales</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="rep-metodo">Método de Acceso</label>
+              <select id="rep-metodo" class="form-control">
+                <option value="">Todos (RFID y Teclado)</option>
+                <option value="RFID">Solo Tarjeta RFID</option>
+                <option value="TECLADO">Solo Teclado PIN</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: flex-end;">
+              <button id="btn-filtrar-reporte" class="btn-primary" style="width: 100%; height: 42px;">🔍 Aplicar Filtros</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI RESUMEN DEL REPORTE -->
+        <div class="report-summary-bar">
+          <div class="rep-kpi"><span>Total Registros:</span> <strong id="rep-total">0</strong></div>
+          <div class="rep-kpi"><span>Entradas:</span> <strong id="rep-entradas" class="text-green">0</strong></div>
+          <div class="rep-kpi"><span>Salidas:</span> <strong id="rep-salidas" class="text-amber">0</strong></div>
+          <div class="rep-kpi"><span>Docentes Únicos:</span> <strong id="rep-docentes" class="text-purple">0</strong></div>
+        </div>
+
+        <!-- TABLA DE RESULTADOS IMPRIMIBLE -->
+        <div class="table-wrapper" id="printable-report">
+          <div class="print-only-header">
+            <h2>REPORTE OFICIAL DE ASISTENCIA DOCENTE</h2>
+            <p id="print-subtitulo">Periodo: Todos los registros | Generado por Dirección</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Docente</th>
+                <th>Cédula / Doc</th>
+                <th>Área / Asignatura</th>
+                <th>Tipo</th>
+                <th>Método</th>
+                <th>Dispositivo</th>
+              </tr>
+            </thead>
+            <tbody id="reporte-table-body">
+              <tr>
+                <td colspan="8" style="text-align:center; padding: 20px;">Cargando reporte...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
-    <!-- TAB 4: SIMULADOR WEB -->
+    <!-- TAB 5: SIMULADOR WEB -->
     <section id="tab-simulador" class="tab-panel">
       <div class="card-panel">
         <div class="panel-header">

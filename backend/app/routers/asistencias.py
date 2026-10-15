@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 from app.database import get_db
 from app.models import Usuario, Asistencia
@@ -157,3 +157,69 @@ def obtener_resumen(db: Session = Depends(get_db)):
             "TECLADO": teclado_count
         }
     }
+
+@router.get("/reporte")
+def generar_reporte(
+    fecha_inicio: Optional[str] = None, # Formato YYYY-MM-DD
+    fecha_fin: Optional[str] = None,    # Formato YYYY-MM-DD
+    tipo: Optional[str] = None,         # "ENTRADA", "SALIDA" o vacío para ambos
+    metodo: Optional[str] = None,       # "RFID", "TECLADO" o vacío para ambos
+    area: Optional[str] = None,         # Área o Asignatura (Español, Educación Física, etc.)
+    usuario_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Endpoint de reportería avanzada para el Rector / Gerente.
+    Permite filtrar por rangos de fecha (diario, semanal, mensual o personalizado),
+    tipo de marcación, método y área/materia del docente.
+    """
+    query = db.query(Asistencia).join(Usuario)
+
+    if fecha_inicio:
+        try:
+            dt_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            query = query.filter(Asistencia.timestamp >= dt_inicio)
+        except ValueError:
+            pass
+
+    if fecha_fin:
+        try:
+            dt_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+            query = query.filter(Asistencia.timestamp <= dt_fin)
+        except ValueError:
+            pass
+
+    if tipo and tipo.strip().upper() in ["ENTRADA", "SALIDA"]:
+        query = query.filter(Asistencia.tipo == tipo.strip().upper())
+
+    if metodo and metodo.strip().upper() in ["RFID", "TECLADO"]:
+        query = query.filter(Asistencia.metodo == metodo.strip().upper())
+
+    if area and area.strip() and area.strip().upper() != "TODAS":
+        query = query.filter(Usuario.departamento.ilike(f"%{area.strip()}%"))
+
+    if usuario_id:
+        query = query.filter(Asistencia.usuario_id == usuario_id)
+
+    registros = query.order_by(Asistencia.timestamp.desc()).all()
+
+    resultado = []
+    for reg in registros:
+        docente = reg.usuario
+        resultado.append({
+            "id": reg.id,
+            "timestamp": reg.timestamp.isoformat(),
+            "fecha": reg.timestamp.strftime("%Y-%m-%d"),
+            "hora": reg.timestamp.strftime("%H:%M:%S"),
+            "docente_id": reg.usuario_id,
+            "docente_nombre": docente.nombre if docente else "Desconocido",
+            "documento": docente.documento if docente else "",
+            "area": docente.departamento if docente else "General",
+            "cargo": getattr(docente, "cargo", "Docente") or "Docente",
+            "tipo": reg.tipo,
+            "metodo": reg.metodo,
+            "dispositivo_id": reg.dispositivo_id
+        })
+
+    return resultado
+

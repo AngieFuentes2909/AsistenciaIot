@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarUsuarios();
   configurarTabs();
   configurarEventos();
+  configurarReportes();
 });
 
 // --- RELOJ DIGITAL EN VIVO ---
@@ -340,3 +341,224 @@ function mostrarToast(mensaje, tipo = 'success') {
     toast.className = 'toast';
   }, 3500);
 }
+
+// ============================================================
+//  MÓDULO DE REPORTES GERENCIALES Y EXPORTACIÓN (EXCEL / PDF)
+// ============================================================
+let reporteDataActual = [];
+
+function configurarReportes() {
+  const quickBtns = document.querySelectorAll('.btn-quick');
+  const btnFiltrar = document.getElementById('btn-filtrar-reporte');
+  const btnExportCsv = document.getElementById('btn-export-csv');
+  const btnPrintPdf = document.getElementById('btn-print-pdf');
+  const inputInicio = document.getElementById('rep-fecha-inicio');
+  const inputFin = document.getElementById('rep-fecha-fin');
+
+  // Inicializar en "Hoy" por defecto
+  const hoyStr = new Date().toISOString().split('T')[0];
+  if (inputInicio) inputInicio.value = hoyStr;
+  if (inputFin) inputFin.value = hoyStr;
+
+  quickBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      quickBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const periodo = btn.dataset.period;
+      const ahora = new Date();
+      let inicio = '';
+      let fin = ahora.toISOString().split('T')[0];
+
+      if (periodo === 'hoy') {
+        inicio = fin;
+      } else if (periodo === 'ayer') {
+        const ayer = new Date(ahora);
+        ayer.setDate(ayer.getDate() - 1);
+        inicio = ayer.toISOString().split('T')[0];
+        fin = inicio;
+      } else if (periodo === 'semana') {
+        // Lunes de esta semana
+        const diaSemana = ahora.getDay();
+        const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+        const lunes = new Date(ahora.setDate(diff));
+        inicio = lunes.toISOString().split('T')[0];
+        fin = new Date().toISOString().split('T')[0];
+      } else if (periodo === 'mes') {
+        const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        inicio = primerDia.toISOString().split('T')[0];
+        fin = new Date().toISOString().split('T')[0];
+      } else if (periodo === 'todo') {
+        inicio = '';
+        fin = '';
+      }
+
+      if (inputInicio) inputInicio.value = inicio;
+      if (inputFin) inputFin.value = fin;
+
+      ejecutarConsultaReporte();
+    });
+  });
+
+  if (btnFiltrar) {
+    btnFiltrar.addEventListener('click', ejecutarConsultaReporte);
+  }
+
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener('click', descargarReporteCSV);
+  }
+
+  if (btnPrintPdf) {
+    btnPrintPdf.addEventListener('click', imprimirReportePDF);
+  }
+
+  // Consulta inicial automática
+  ejecutarConsultaReporte();
+}
+
+async function ejecutarConsultaReporte() {
+  const inputInicio = document.getElementById('rep-fecha-inicio')?.value || '';
+  const inputFin = document.getElementById('rep-fecha-fin')?.value || '';
+  const tipo = document.getElementById('rep-tipo')?.value || '';
+  const area = document.getElementById('rep-area')?.value || '';
+  const metodo = document.getElementById('rep-metodo')?.value || '';
+  const tbody = document.getElementById('reporte-table-body');
+
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-muted);">Consultando asistencias en Supabase...</td></tr>`;
+  }
+
+  const params = new URLSearchParams();
+  if (inputInicio) params.append('fecha_inicio', inputInicio);
+  if (inputFin) params.append('fecha_fin', inputFin);
+  if (tipo) params.append('tipo', tipo);
+  if (area) params.append('area', area);
+  if (metodo) params.append('metodo', metodo);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/asistencias/reporte?${params.toString()}`);
+    if (!res.ok) throw new Error('Error al consultar reporte');
+
+    reporteDataActual = await res.json();
+    renderizarReporte(reporteDataActual);
+  } catch (err) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#f43f5e;">⚠️ Error al obtener reporte de la base de datos.</td></tr>`;
+    }
+  }
+}
+
+function renderizarReporte(datos) {
+  const tbody = document.getElementById('reporte-table-body');
+  const repTotal = document.getElementById('rep-total');
+  const repEntradas = document.getElementById('rep-entradas');
+  const repSalidas = document.getElementById('rep-salidas');
+  const repDocentes = document.getElementById('rep-docentes');
+  const printSubtitulo = document.getElementById('print-subtitulo');
+
+  const inicio = document.getElementById('rep-fecha-inicio')?.value || 'Histórico';
+  const fin = document.getElementById('rep-fecha-fin')?.value || 'Hoy';
+  if (printSubtitulo) {
+    printSubtitulo.textContent = `Periodo: ${inicio} al ${fin} | Total Registros: ${datos.length} | Generado: ${new Date().toLocaleString('es-ES')}`;
+  }
+
+  const total = datos.length;
+  const entradas = datos.filter(d => d.tipo === 'ENTRADA').length;
+  const salidas = datos.filter(d => d.tipo === 'SALIDA').length;
+  const docentesUnicos = new Set(datos.map(d => d.docente_id)).size;
+
+  if (repTotal) repTotal.textContent = total;
+  if (repEntradas) repEntradas.textContent = entradas;
+  if (repSalidas) repSalidas.textContent = salidas;
+  if (repDocentes) repDocentes.textContent = docentesUnicos;
+
+  if (!tbody) return;
+
+  if (datos.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">
+          No se encontraron marcaciones para el periodo y filtros indicados.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = datos.map(item => {
+    const esEntrada = item.tipo === 'ENTRADA';
+    const esRfid = item.metodo === 'RFID';
+    return `
+      <tr>
+        <td style="font-family:'JetBrains Mono', monospace; font-size:0.85rem;">${item.fecha}</td>
+        <td style="font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.9rem; color:var(--text-main);">${item.hora}</td>
+        <td>
+          <div style="font-weight:600; color:var(--text-main);">${item.docente_nombre}</div>
+          <div style="font-size:0.75rem; color:var(--text-sub);">${item.cargo}</div>
+        </td>
+        <td style="font-family:'JetBrains Mono', monospace;">${item.documento}</td>
+        <td>
+          <span style="background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:6px; font-size:0.8rem; color:#cbd5e1;">
+            ${item.area}
+          </span>
+        </td>
+        <td>
+          <span class="badge ${esEntrada ? 'badge-entrada' : 'badge-salida'}">
+            ${esEntrada ? '⬇️ ENTRADA' : '⬆️ SALIDA'}
+          </span>
+        </td>
+        <td>
+          <span class="badge ${esRfid ? 'badge-rfid' : 'badge-teclado'}">
+            ${esRfid ? '📡 RFID' : '⌨️ TECLADO'}
+          </span>
+        </td>
+        <td style="font-size:0.75rem; color:var(--text-sub);">${item.dispositivo_id}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function descargarReporteCSV() {
+  if (!reporteDataActual || reporteDataActual.length === 0) {
+    mostrarToast('No hay datos en el reporte actual para descargar', 'error');
+    return;
+  }
+
+  const headers = ['Fecha', 'Hora', 'Docente', 'Documento', 'Area / Asignatura', 'Cargo', 'Tipo Marcacion', 'Metodo', 'Dispositivo'];
+
+  const rows = reporteDataActual.map(item => [
+    `"${item.fecha}"`,
+    `"${item.hora}"`,
+    `"${item.docente_nombre.replace(/"/g, '""')}"`,
+    `"${item.documento}"`,
+    `"${item.area.replace(/"/g, '""')}"`,
+    `"${item.cargo.replace(/"/g, '""')}"`,
+    `"${item.tipo}"`,
+    `"${item.metodo}"`,
+    `"${item.dispositivo_id}"`
+  ]);
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Reporte_Asistencia_Docente_${fechaHoy}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  mostrarToast(`Reporte Excel (.CSV) descargado con ${reporteDataActual.length} filas`, 'success');
+}
+
+function imprimirReportePDF() {
+  if (!reporteDataActual || reporteDataActual.length === 0) {
+    mostrarToast('No hay datos en el reporte actual para imprimir', 'error');
+    return;
+  }
+  window.print();
+}
+
