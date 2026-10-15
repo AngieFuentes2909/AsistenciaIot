@@ -79,14 +79,15 @@ async def registrar_asistencia(
         else:
             tipo = "SALIDA"
 
-    # Preparar mensajes para la pantalla LCD
-    primer_nombre = usuario.nombre.split()[0]
+    # Preparar mensajes para la pantalla LCD del colegio
+    nombre_limpio = usuario.nombre.replace("Lic. ", "").replace("Prof. ", "").strip()
+    primer_nombre = nombre_limpio.split()[0]
     if tipo == "ENTRADA":
-        lcd1 = f"Hola {primer_nombre}"
+        lcd1 = f"Prof. {primer_nombre}"[:16]
         lcd2 = "Bienvenid@!"
     else:
-        lcd1 = f"Hasta luego!"
-        lcd2 = f"{primer_nombre}"
+        lcd1 = "Hasta luego!"
+        lcd2 = f"Prof. {primer_nombre}"[:16]
 
     # Crear el registro de asistencia en la base de datos (TimescaleDB hypertable)
     ahora = datetime.now(timezone.utc)

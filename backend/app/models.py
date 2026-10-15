@@ -12,6 +12,8 @@ class Usuario(Base):
     rfid_uid = Column(String(50), unique=True, index=True, nullable=True)
     pin = Column(String(10), nullable=True)
     departamento = Column(String(100), default="General")
+    cargo = Column(String(100), default="Docente")
+    email = Column(String(150), nullable=True)
     activo = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

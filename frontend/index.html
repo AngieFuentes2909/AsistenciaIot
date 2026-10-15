@@ -16,10 +16,10 @@
     <!-- HEADER -->
     <header class="header">
       <div class="brand-wrapper">
-        <div class="brand-icon">⚡</div>
+        <div class="brand-icon">🏫</div>
         <div class="brand-info">
-          <h1>Control de Asistencia IoT</h1>
-          <p>ESP32 • RFID RC522 • Teclado 4x4 • TimescaleDB</p>
+          <h1>Control de Asistencia Docente</h1>
+          <p>ESP32 • RFID RC522 • Teclado 4x4 • Sistema Escolar IoT</p>
         </div>
       </div>
 
@@ -40,7 +40,7 @@
           <span class="stat-icon">📊</span>
         </div>
         <div class="stat-value" id="kpi-total">0</div>
-        <div class="stat-footer">Eventos capturados hoy</div>
+        <div class="stat-footer">Marcaciones del día</div>
       </div>
 
       <div class="stat-card stat-green">
@@ -49,7 +49,7 @@
           <span class="stat-icon">🚪</span>
         </div>
         <div class="stat-value" id="kpi-entradas">0</div>
-        <div class="stat-footer">Ingresos exitosos</div>
+        <div class="stat-footer">Ingresos de profesores</div>
       </div>
 
       <div class="stat-card stat-amber">
@@ -58,16 +58,16 @@
           <span class="stat-icon">🏃</span>
         </div>
         <div class="stat-value" id="kpi-salidas">0</div>
-        <div class="stat-footer">Egresos registrados</div>
+        <div class="stat-footer">Egresos de profesores</div>
       </div>
 
       <div class="stat-card stat-purple">
         <div class="stat-header">
-          <span class="stat-title">Empleados Activos</span>
-          <span class="stat-icon">👥</span>
+          <span class="stat-title">Docentes Activos</span>
+          <span class="stat-icon">👨‍🏫</span>
         </div>
         <div class="stat-value" id="kpi-usuarios">0</div>
-        <div class="stat-footer">Usuarios en base de datos</div>
+        <div class="stat-footer">Profesores registrados</div>
       </div>
     </section>
 
@@ -77,10 +77,10 @@
         <span>⏱️</span> Asistencias en Vivo
       </button>
       <button class="tab-btn" data-tab="tab-usuarios">
-        <span>👥</span> Personal / Tarjetas
+        <span>👨‍🏫</span> Cuerpo Docente
       </button>
       <button class="tab-btn" data-tab="tab-nuevo-usuario">
-        <span>➕</span> Registrar Empleado
+        <span>➕</span> Registrar Docente
       </button>
       <button class="tab-btn" data-tab="tab-simulador">
         <span>🧪</span> Simulador Web
@@ -134,27 +134,27 @@
       <div class="card-panel">
         <div class="panel-header">
           <div class="panel-title">
-            <h2>Directorio de Empleados y Tarjetas RFID</h2>
-            <p>Personal registrado con credenciales físicas asignadas</p>
+            <h2>Directorio de Docentes y Tarjetas RFID</h2>
+            <p>Profesores del colegio con credenciales físicas y PIN asignados</p>
           </div>
-          <button class="btn-primary" onclick="cambiarTab('tab-nuevo-usuario')">➕ Nuevo Empleado</button>
+          <button class="btn-primary" onclick="cambiarTab('tab-nuevo-usuario')">➕ Nuevo Docente</button>
         </div>
 
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Nombre</th>
+                <th>Docente</th>
                 <th>Documento</th>
                 <th>UID Tarjeta RFID</th>
                 <th>PIN Teclado</th>
-                <th>Departamento</th>
+                <th>Área / Asignatura</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody id="usuarios-table-body">
               <tr>
-                <td colspan="6" style="text-align:center; padding: 20px;">Cargando empleados...</td>
+                <td colspan="6" style="text-align:center; padding: 20px;">Cargando cuerpo docente...</td>
               </tr>
             </tbody>
           </table>
@@ -162,25 +162,25 @@
       </div>
     </section>
 
-    <!-- TAB 3: REGISTRAR NUEVO EMPLEADO -->
+    <!-- TAB 3: REGISTRAR NUEVO DOCENTE -->
     <section id="tab-nuevo-usuario" class="tab-panel">
       <div class="card-panel">
         <div class="panel-header">
           <div class="panel-title">
-            <h2>Registrar Nuevo Empleado</h2>
-            <p>Guarda el usuario en PostgreSQL y asígnale su carnet RFID o PIN de teclado</p>
+            <h2>Registrar Nuevo Docente</h2>
+            <p>Guarda el profesor en la base de datos y asígnale su carnet RFID o PIN de teclado</p>
           </div>
         </div>
 
         <form id="form-nuevo-usuario">
           <div class="form-grid">
             <div class="form-group">
-              <label for="u-nombre">Nombre Completo *</label>
-              <input type="text" id="u-nombre" class="form-control" placeholder="Ej: Carlos Rodriguez" required>
+              <label for="u-nombre">Nombre del Docente *</label>
+              <input type="text" id="u-nombre" class="form-control" placeholder="Ej: Lic. Carlos Rodriguez" required>
             </div>
 
             <div class="form-group">
-              <label for="u-documento">Documento / Código *</label>
+              <label for="u-documento">Documento / Cédula *</label>
               <input type="text" id="u-documento" class="form-control" placeholder="Ej: 1004" required>
             </div>
 
@@ -195,13 +195,13 @@
             </div>
 
             <div class="form-group">
-              <label for="u-departamento">Departamento</label>
-              <input type="text" id="u-departamento" class="form-control" placeholder="Ej: Operaciones" value="General">
+              <label for="u-departamento">Área / Asignatura</label>
+              <input type="text" id="u-departamento" class="form-control" placeholder="Ej: Español, Educación Física, Matemáticas" value="Educación Física">
             </div>
           </div>
 
           <div style="margin-top: 24px;">
-            <button type="submit" class="btn-primary">💾 Guardar Empleado</button>
+            <button type="submit" class="btn-primary">💾 Guardar Docente</button>
           </div>
         </form>
       </div>

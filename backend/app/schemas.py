@@ -9,6 +9,7 @@ class UsuarioBase(BaseModel):
     rfid_uid: Optional[str] = None
     pin: Optional[str] = None
     departamento: Optional[str] = "General"
+    cargo: Optional[str] = "Docente"
     activo: Optional[bool] = True
 
 class UsuarioCreate(UsuarioBase):
