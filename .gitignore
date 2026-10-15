@@ -1,0 +1,21 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Variables de entorno secretas (no subir claves a GitHub público)
+backend/.env
+
+# IDEs y sistemas
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

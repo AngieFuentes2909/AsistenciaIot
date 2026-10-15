@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Asistencia IoT | Panel en Vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand-wrapper">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-info">
+          <h1>Control de Asistencia IoT</h1>
+          <p>ESP32 • RFID RC522 • Teclado 4x4 • TimescaleDB</p>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div class="clock-badge" id="live-clock">--:--:-- --</div>
+        <div class="live-indicator">
+          <div class="pulse-dot"></div>
+          <span>SISTEMA EN LÍNEA</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- METRICS CARDS -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">Total Registros Hoy</span>
+          <span class="stat-icon">📊</span>
+        </div>
+        <div class="stat-value" id="kpi-total">0</div>
+        <div class="stat-footer">Eventos capturados hoy</div>
+      </div>
+
+      <div class="stat-card stat-green">
+        <div class="stat-header">
+          <span class="stat-title">Entradas Registradas</span>
+          <span class="stat-icon">🚪</span>
+        </div>
+        <div class="stat-value" id="kpi-entradas">0</div>
+        <div class="stat-footer">Ingresos exitosos</div>
+      </div>
+
+      <div class="stat-card stat-amber">
+        <div class="stat-header">
+          <span class="stat-title">Salidas Registradas</span>
+          <span class="stat-icon">🏃</span>
+        </div>
+        <div class="stat-value" id="kpi-salidas">0</div>
+        <div class="stat-footer">Egresos registrados</div>
+      </div>
+
+      <div class="stat-card stat-purple">
+        <div class="stat-header">
+          <span class="stat-title">Empleados Activos</span>
+          <span class="stat-icon">👥</span>
+        </div>
+        <div class="stat-value" id="kpi-usuarios">0</div>
+        <div class="stat-footer">Usuarios en base de datos</div>
+      </div>
+    </section>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-asistencias">
+        <span>⏱️</span> Asistencias en Vivo
+      </button>
+      <button class="tab-btn" data-tab="tab-usuarios">
+        <span>👥</span> Personal / Tarjetas
+      </button>
+      <button class="tab-btn" data-tab="tab-nuevo-usuario">
+        <span>➕</span> Registrar Empleado
+      </button>
+      <button class="tab-btn" data-tab="tab-simulador">
+        <span>🧪</span> Simulador Web
+      </button>
+    </nav>
+
+    <!-- TAB 1: ASISTENCIAS EN VIVO -->
+    <main id="tab-asistencias" class="tab-panel active">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Historial de Asistencias en Tiempo Real</h2>
+            <p>Datos almacenados en TimescaleDB y sincronizados con Blynk</p>
+          </div>
+
+          <div class="actions-row">
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar por empleado...">
+            <button id="btn-refresh" class="btn-outline">🔄 Actualizar</button>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+              <input type="checkbox" id="auto-refresh" checked> Auto (3s)
+            </label>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Empleado</th>
+                <th>Método</th>
+                <th>Evento</th>
+                <th>Fecha y Hora</th>
+                <th>Punto de Acceso</th>
+              </tr>
+            </thead>
+            <tbody id="asistencias-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                  Cargando asistencias...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 2: PERSONAL / TARJETAS -->
+    <section id="tab-usuarios" class="tab-panel">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Directorio de Empleados y Tarjetas RFID</h2>
+            <p>Personal registrado con credenciales físicas asignadas</p>
+          </div>
+          <button class="btn-primary" onclick="cambiarTab('tab-nuevo-usuario')">➕ Nuevo Empleado</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Documento</th>
+                <th>UID Tarjeta RFID</th>
+                <th>PIN Teclado</th>
+                <th>Departamento</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="usuarios-table-body">
+              <tr>
+                <td colspan="6" style="text-align:center; padding: 20px;">Cargando empleados...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: REGISTRAR NUEVO EMPLEADO -->
+    <section id="tab-nuevo-usuario" class="tab-panel">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Registrar Nuevo Empleado</h2>
+            <p>Guarda el usuario en PostgreSQL y asígnale su carnet RFID o PIN de teclado</p>
+          </div>
+        </div>
+
+        <form id="form-nuevo-usuario">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="u-nombre">Nombre Completo *</label>
+              <input type="text" id="u-nombre" class="form-control" placeholder="Ej: Carlos Rodriguez" required>
+            </div>
+
+            <div class="form-group">
+              <label for="u-documento">Documento / Código *</label>
+              <input type="text" id="u-documento" class="form-control" placeholder="Ej: 1004" required>
+            </div>
+
+            <div class="form-group">
+              <label for="u-rfid">UID Tarjeta RFID (Opcional)</label>
+              <input type="text" id="u-rfid" class="form-control" placeholder="Ej: A1B2C3D4">
+            </div>
+
+            <div class="form-group">
+              <label for="u-pin">PIN de Teclado (4 dígitos)</label>
+              <input type="password" id="u-pin" class="form-control" placeholder="Ej: 4321" maxlength="6">
+            </div>
+
+            <div class="form-group">
+              <label for="u-departamento">Departamento</label>
+              <input type="text" id="u-departamento" class="form-control" placeholder="Ej: Operaciones" value="General">
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <button type="submit" class="btn-primary">💾 Guardar Empleado</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: SIMULADOR WEB -->
+    <section id="tab-simulador" class="tab-panel">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Simulador Web de Registro</h2>
+            <p>Prueba el registro manual por RFID o Teclado directamente desde la web</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sim-metodo">Método de Acceso</label>
+            <select id="sim-metodo" class="form-control">
+              <option value="RFID">RFID (Tarjeta de Proximidad)</option>
+              <option value="TECLADO">TECLADO (Código Numérico)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="sim-identificador">Identificador (UID o Documento)</label>
+            <input type="text" id="sim-identificador" class="form-control" value="86557F05" placeholder="UID o Documento">
+          </div>
+
+          <div class="form-group">
+            <label for="sim-tipo">Modo</label>
+            <select id="sim-tipo" class="form-control">
+              <option value="AUTO">AUTO (Alternar Entrada / Salida automáticamente)</option>
+              <option value="ENTRADA">Forzar ENTRADA</option>
+              <option value="SALIDA">Forzar SALIDA</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button id="btn-simular" class="btn-primary">⚡ Enviar Registro Simulado</button>
+        </div>
+
+        <div id="sim-resultado" style="margin-top: 20px; display: none;"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
