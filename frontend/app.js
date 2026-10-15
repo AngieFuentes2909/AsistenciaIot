@@ -271,6 +271,19 @@ function configurarEventos() {
     }
   });
 
+  // Botones de autocompletar docentes en el simulador
+  document.querySelectorAll('.btn-sim-docente').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const metodo = btn.getAttribute('data-metodo');
+      const id = btn.getAttribute('data-id');
+      const inputMetodo = document.getElementById('sim-metodo');
+      const inputId = document.getElementById('sim-identificador');
+      if (inputMetodo) inputMetodo.value = metodo;
+      if (inputId) inputId.value = id;
+      mostrarToast(`Docente seleccionado: ${btn.textContent.trim()}`, 'success');
+    });
+  });
+
   // Simulador de Asistencia Web
   const btnSimular = document.getElementById('btn-simular');
   const simResultado = document.getElementById('sim-resultado');
@@ -348,6 +361,13 @@ function mostrarToast(mensaje, tipo = 'success') {
 // ============================================================
 let reporteDataActual = [];
 
+function obtenerFechaLocalStr(fecha = new Date()) {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, '0');
+  const d = String(fecha.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function configurarReportes() {
   const quickBtns = document.querySelectorAll('.btn-quick');
   const btnFiltrar = document.getElementById('btn-filtrar-reporte');
@@ -356,10 +376,9 @@ function configurarReportes() {
   const inputInicio = document.getElementById('rep-fecha-inicio');
   const inputFin = document.getElementById('rep-fecha-fin');
 
-  // Inicializar en "Hoy" por defecto
-  const hoyStr = new Date().toISOString().split('T')[0];
-  if (inputInicio) inputInicio.value = hoyStr;
-  if (inputFin) inputFin.value = hoyStr;
+  // Inicializar en "Todo el Historial" por defecto para que aparezcan todos los registros de inmediato
+  if (inputInicio) inputInicio.value = '';
+  if (inputFin) inputFin.value = '';
 
   quickBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -369,26 +388,27 @@ function configurarReportes() {
       const periodo = btn.dataset.period;
       const ahora = new Date();
       let inicio = '';
-      let fin = ahora.toISOString().split('T')[0];
+      let fin = obtenerFechaLocalStr(ahora);
 
       if (periodo === 'hoy') {
         inicio = fin;
       } else if (periodo === 'ayer') {
         const ayer = new Date(ahora);
         ayer.setDate(ayer.getDate() - 1);
-        inicio = ayer.toISOString().split('T')[0];
+        inicio = obtenerFechaLocalStr(ayer);
         fin = inicio;
       } else if (periodo === 'semana') {
         // Lunes de esta semana
         const diaSemana = ahora.getDay();
         const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
-        const lunes = new Date(ahora.setDate(diff));
-        inicio = lunes.toISOString().split('T')[0];
-        fin = new Date().toISOString().split('T')[0];
+        const lunes = new Date(ahora);
+        lunes.setDate(diff);
+        inicio = obtenerFechaLocalStr(lunes);
+        fin = obtenerFechaLocalStr(new Date());
       } else if (periodo === 'mes') {
         const primerDia = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-        inicio = primerDia.toISOString().split('T')[0];
-        fin = new Date().toISOString().split('T')[0];
+        inicio = obtenerFechaLocalStr(primerDia);
+        fin = obtenerFechaLocalStr(new Date());
       } else if (periodo === 'todo') {
         inicio = '';
         fin = '';

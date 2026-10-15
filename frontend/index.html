@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="styles.css?v=2.3">
 </head>
 <body>
 
@@ -229,11 +229,11 @@
           <div class="filter-quick-row">
             <span class="filter-label">Periodo Rápido:</span>
             <div class="quick-btn-group">
-              <button type="button" class="btn-quick active" data-period="hoy">Hoy</button>
+              <button type="button" class="btn-quick active" data-period="todo">Todo el Historial</button>
+              <button type="button" class="btn-quick" data-period="hoy">Hoy</button>
               <button type="button" class="btn-quick" data-period="ayer">Ayer</button>
               <button type="button" class="btn-quick" data-period="semana">Esta Semana</button>
               <button type="button" class="btn-quick" data-period="mes">Este Mes</button>
-              <button type="button" class="btn-quick" data-period="todo">Todo el Historial</button>
             </div>
           </div>
 
@@ -330,6 +330,27 @@
           </div>
         </div>
 
+        <!-- BOTONES DE PRUEBA RÁPIDA -->
+        <div style="margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">
+            Docentes de Prueba (Haz clic para autocompletar la simulación):
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn-quick btn-sim-docente" data-metodo="RFID" data-id="86557F05">
+              💳 Lic. Angie Fuentes (RFID Español)
+            </button>
+            <button type="button" class="btn-quick btn-sim-docente" data-metodo="TECLADO" data-id="1002">
+              ⌨️ Lic. Juan Perez (Doc 1002 Ed. Física)
+            </button>
+            <button type="button" class="btn-quick btn-sim-docente" data-metodo="RFID" data-id="F1E2D3C4">
+              💳 Lic. Carlos Rodriguez (RFID Matemáticas)
+            </button>
+            <button type="button" class="btn-quick btn-sim-docente" data-metodo="TECLADO" data-id="1004">
+              ⌨️ Lic. Maria Lopez (Doc 1004 Biología)
+            </button>
+          </div>
+        </div>
+
         <div class="form-grid">
           <div class="form-group">
             <label for="sim-metodo">Método de Acceso</label>
@@ -358,7 +379,11 @@
           <button id="btn-simular" class="btn-primary">⚡ Enviar Registro Simulado</button>
         </div>
 
-        <div id="sim-resultado" style="margin-top: 20px; display: none;"></div>
+        <div id="sim-resultado" style="margin-top: 20px;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border-color); border-radius: 12px; padding: 16px; color: var(--text-muted); font-size: 0.88rem;">
+            ℹ️ Selecciona un docente o digita un identificador arriba y haz clic en <strong>"Enviar Registro Simulado"</strong> para probar la marcación de asistencia directamente en Supabase y Render.
+          </div>
+        </div>
       </div>
     </section>
 
@@ -367,6 +392,6 @@
   <!-- TOAST NOTIFICATION -->
   <div id="toast" class="toast"></div>
 
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>
