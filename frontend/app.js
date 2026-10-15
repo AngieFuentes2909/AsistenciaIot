@@ -18,6 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarTabs();
   configurarEventos();
   configurarReportes();
+
+  // Soporte para abrir pestaña directamente desde la URL (#tab-reportes, #tab-simulador)
+  if (window.location.hash) {
+    const tabFromHash = window.location.hash.substring(1);
+    if (document.getElementById(tabFromHash)) {
+      cambiarTab(tabFromHash);
+    }
+  }
 });
 
 // --- RELOJ DIGITAL EN VIVO ---
@@ -56,6 +64,10 @@ function cambiarTab(tabId) {
 
   if (activeBtn) activeBtn.classList.add('active');
   if (activePanel) activePanel.classList.add('active');
+
+  if (window.location.hash !== `#${tabId}`) {
+    history.replaceState(null, null, `#${tabId}`);
+  }
 
   if (tabId === 'tab-usuarios') cargarUsuarios();
   if (tabId === 'tab-asistencias') cargarAsistencias();
